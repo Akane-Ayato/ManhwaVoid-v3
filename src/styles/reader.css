@@ -1,0 +1,53 @@
+/* ---------- Reader ---------- */
+.reader { min-height: 100vh; background: #000; color: #fff; --reader-width: 900px; }
+:root[data-theme='light'] .reader { background: #0b0b0d; }
+.reader-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 90; background: rgba(255, 255, 255, 0.08); }
+.reader-progress span { display: block; height: 100%; background: var(--accent); transition: width 0.1s linear; }
+
+.reader-pill {
+  position: fixed; top: calc(14px + env(safe-area-inset-top)); left: 50%; z-index: 80; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-radius: 999px;
+  background: rgba(30, 30, 36, 0.88); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); transition: transform 0.25s, opacity 0.25s;
+}
+.reader-pill.hidden { transform: translate(-50%, -80px); opacity: 0; }
+.reader-pill a, .reader-pill .off { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: #e4e4e7; }
+.reader-pill a:hover { background: rgba(255, 255, 255, 0.12); }
+.reader-pill .off { opacity: 0.3; }
+.reader-pill button { padding: 6px 14px; font-weight: 700; font-size: 17px; border-radius: 999px; }
+.reader-pill button:hover { background: rgba(255, 255, 255, 0.1); }
+
+.reader-rail {
+  position: fixed; right: 24px; top: 50%; transform: translateY(-50%); z-index: 80; display: grid; gap: 2px; padding: 8px;
+  background: rgba(30, 30, 36, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.reader-rail a, .reader-rail button { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 10px; color: #d4d4d8; }
+.reader-rail a:hover, .reader-rail button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.reader-rail button:disabled { opacity: 0.3; }
+.reader-rail hr { width: 70%; margin: 4px auto; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+
+.reader-pages { width: min(var(--reader-width), 100%); margin: 0 auto; }
+.page-frame { position: relative; min-height: 80px; background: #0a0a0c; }
+.page-frame.loading { min-height: 520px; }
+.page-frame.loading::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+.page-frame img { display: block; width: 100%; height: auto; }
+.page-failed { display: grid; justify-items: center; gap: 10px; padding: 70px 20px; color: #a1a1aa; }
+
+.reader-end { width: min(var(--reader-width), 100%); margin: 0 auto; padding: 48px 16px 90px; display: grid; justify-items: center; gap: 22px; text-align: center; }
+.reader-end > p { color: #a1a1aa; }
+.reader-end-nav { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.reader-end .btn-outline { background: transparent; border-color: #3f3f46; color: #fff; }
+.reader-end .hint { font-size: 13px; color: #71717a; }
+.breadcrumb { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; font-size: 14px; color: #a1a1aa; }
+.breadcrumb a:hover { color: #fff; }
+.breadcrumb b { color: #fff; }
+.to-top { position: fixed; right: 24px; bottom: 24px; z-index: 80; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); }
+.reader-error { display: grid; justify-items: center; gap: 12px; padding-top: 80px; }
+.reader-error ~ * { color: var(--text); }
+
+@media (max-width: 767px) {
+  .reader-rail { right: 8px; padding: 4px; }
+  .reader-rail a, .reader-rail button { width: 36px; height: 36px; }
+  .to-top { right: 10px; bottom: 14px; }
+  .reader-pill button { font-size: 15px; }
+}
