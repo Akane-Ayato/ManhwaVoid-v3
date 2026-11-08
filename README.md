@@ -78,4 +78,4 @@ reference/             your original reference captures (not shipped in the buil
 ## v1.2.0 notes
 - **Logo:** book-and-roses emblem (your artwork) + Cinzel Decorative chrome/violet wordmark (`public/fonts`, `.logo-text` in `layout.css`). Icons are regenerated from the emblem.
 - **Install button:** always visible; uses the native prompt when the browser provides one, otherwise shows platform-specific steps (Windows/Linux/macOS/Android/iOS). Native prompts need HTTPS or localhost.
-- **Vercel:** see `DEPLOYMENT.md`. The API is reached only through `api/[...path].ts`; set `BACKEND_URL` as a server-side env var.
+- **Vercel:** see `DEPLOYMENT.md`. The API is reached only through `api/proxy.ts`; set `BACKEND_URL` as a server-side env var.
