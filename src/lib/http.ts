@@ -76,20 +76,36 @@ http.interceptors.request.use((config) => {
 });
 
 // --- Token refresh: one refresh in flight no matter how many requests got a 401 ---
-let refreshing: Promise<string | null> | null = null;
+let refreshing: Promise<RefreshResult> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
+type RefreshResult = { accessToken: string | null; error: ApiError | null };
+
+async function refreshAccessToken(): Promise<RefreshResult> {
   const refresh = tokens.refresh();
-  if (!refresh) return null;
+  if (!refresh) return { accessToken: null, error: new ApiError('No refresh session is available.', 401, 'SESSION_EXPIRED') };
+
   try {
     // Plain axios: bypass our interceptors so a failing refresh can't recurse.
-    const { data } = await axios.post<Envelope<TokenPair>>(`${API_BASE}/auth/refresh`, { refresh_token: refresh });
+    const { data } = await axios.post<Envelope<TokenPair>>(
+      `${API_BASE}/auth/refresh`,
+      { refresh_token: refresh },
+      { timeout: http.defaults.timeout },
+    );
+    if (!data?.success || !data.data?.access_token || !data.data?.refresh_token) {
+      // A malformed/server-side response is not proof that the refresh session is invalid.
+      return { accessToken: null, error: new ApiError('The server returned an invalid refresh response. Please retry.', 502, 'INVALID_REFRESH_RESPONSE') };
+    }
     tokens.save(data.data);
-    return data.data.access_token;
-  } catch {
-    tokens.clear();
-    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
-    return null;
+    return { accessToken: data.data.access_token, error: null };
+  } catch (err) {
+    const apiError = toApiError(err);
+    // Only an explicit authentication rejection means the refresh session is invalid.
+    // Network errors, rate limits, proxy failures and 5xx responses must not destroy it.
+    if (apiError.status === 401) {
+      tokens.clear();
+      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+    }
+    return { accessToken: null, error: apiError };
   }
 }
 
@@ -103,11 +119,14 @@ http.interceptors.response.use(
     if (error.response?.status === 401 && original && !original._retried && !isAuthCall && tokens.refresh()) {
       original._retried = true;
       refreshing ??= refreshAccessToken().finally(() => { refreshing = null; });
-      const fresh = await refreshing;
-      if (fresh) {
-        original.headers = { ...original.headers, Authorization: `Bearer ${fresh}` };
+      const result = await refreshing;
+      if (result.accessToken) {
+        original.headers = { ...original.headers, Authorization: `Bearer ${result.accessToken}` };
         return http(original);
       }
+      // Preserve the refresh failure's status. In particular, don't turn a transient
+      // refresh 500/network failure into the original 401 (which looks like logout).
+      if (result.error) return Promise.reject(result.error);
     }
     return Promise.reject(toApiError(error));
   },
