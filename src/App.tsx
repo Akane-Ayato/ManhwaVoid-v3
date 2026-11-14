@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Browse from './pages/Browse';
 import Title from './pages/Title';
 import NotFound from './pages/NotFound';
+const AdminGate = lazy(() => import('./components/AdminGate')); 
 
 // Heavier / less common pages are split into their own chunks.
 const Reader = lazy(() => import('./pages/Reader'));
@@ -37,6 +38,8 @@ export default function App() {
           <Route path="/read/:slug/:chapter" element={<LegacyRead />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          {/* Private control-center entry point. Authorization is enforced by the API, not by this route. */}
+          <Route path="/quanxi" element={<AdminGate />} />
 
           <Route element={<Layout />}>
             <Route index element={<Home />} />
