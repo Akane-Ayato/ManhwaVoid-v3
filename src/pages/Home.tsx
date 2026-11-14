@@ -21,39 +21,35 @@ export default function Home() {
   if (home.error) return <div className="container"><ErrorState error={home.error} onRetry={home.reload} /></div>;
 
   const data = home.data;
-  const trending = data?.trending.length ? data.trending : data?.hero ?? [];
+  const visible = new Set(data?.admin_settings?.visible_sections ?? ['hero', 'trending', 'latest_updates', 'popular', 'recommended']);
+  const titles = data?.admin_settings?.section_titles ?? {};
+  const order = data?.admin_settings?.section_order ?? ['hero', 'trending', 'latest_updates', 'popular', 'recommended'];
+  const trending = data?.trending.length ? data.trending : (visible.has('hero') ? [] : data?.hero ?? []);
   const popular = data?.popular.length ? data.popular : trending;
+
+  const renderSection = (key: string) => {
+    if (!visible.has(key)) return null;
+    if (key === 'hero') return data?.hero?.length ? <section key={key}><SectionHeading icon={<TrendingUp size={28} />} title={titles.hero || 'Featured'} tone="cool" /><TrendingRow items={data.hero} /></section> : null;
+    if (key === 'trending') return <section key={key}><SectionHeading icon={<TrendingUp size={28} />} title={titles.trending || 'Trending Now'} tone="hot" to="/browse?sort=popular" />{home.loading ? <CardGridSkeleton count={6} className="trending-row" /> : <TrendingRow items={trending} />}</section>;
+    if (key === 'latest_updates') return <section key={key}><SectionHeading icon={<ListChecks size={28} />} title={titles.latest_updates || 'Latest Updates'} tone="warm" to="/browse?sort=latest" />{home.loading ? <CardGridSkeleton count={10} /> : <LatestGrid initial={data?.latest_updates ?? []} />}</section>;
+    if (key === 'recommended') return data?.recommended.length ? <section key={key}><SectionHeading icon={<ListChecks size={28} />} title={titles.recommended || 'Recommended'} tone="cool" /><div className="card-grid">{data.recommended.slice(0, 10).map((m) => <MangaCard key={m.slug} manga={m} />)}</div></section> : null;
+    return null;
+  };
 
   return (
     <div className="container home">
       <div className="home-grid">
         <div className="home-main">
           <ContinueReading />
-
-          <section>
-            <SectionHeading icon={<TrendingUp size={28} />} title="Trending Now" tone="hot" to="/browse?sort=popular" />
-            {home.loading ? <CardGridSkeleton count={6} className="trending-row" /> : <TrendingRow items={trending} />}
-          </section>
-
-          <section>
-            <SectionHeading icon={<ListChecks size={28} />} title="Latest Updates" tone="warm" to="/browse?sort=latest" />
-            {home.loading ? <CardGridSkeleton count={10} /> : <LatestGrid initial={data?.latest_updates ?? []} />}
-          </section>
-
-          {!!data?.recommended.length && (
-            <section>
-              <SectionHeading icon={<ListChecks size={28} />} title="Recommended" tone="cool" />
-              <div className="card-grid">{data.recommended.slice(0, 10).map((m) => <MangaCard key={m.slug} manga={m} />)}</div>
-            </section>
-          )}
+          {order.filter((key) => key !== 'popular').map((key) => renderSection(key))}
         </div>
 
-        <aside className="home-side">
-          <h2 className="side-title">Popular Ongoing</h2>
+        {visible.has('popular') && <aside className="home-side">
+          <h2 className="side-title">{titles.popular || 'Popular Ongoing'}</h2>
           {home.loading
             ? Array.from({ length: 8 }, (_, i) => <div key={i} className="skeleton side-skeleton" />)
             : <ol className="popular-list">{popular.slice(0, 10).map((m, i) => <PopularRow key={m.slug} manga={m} rank={i + 1} />)}</ol>}
-        </aside>
+        </aside>}
       </div>
     </div>
   );
