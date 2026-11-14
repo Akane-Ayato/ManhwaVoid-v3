@@ -23,6 +23,17 @@ const clean = <T extends object>(params: T) =>
 
 /* ------------------------------------------------------------------ Discovery */
 
+
+export interface PublicSiteConfig {
+  maintenance_mode: boolean;
+  registration_enabled: boolean;
+  announcement_enabled: boolean;
+  announcement_title: string;
+  announcement_body: string;
+  announcement_link: string;
+}
+export const getSiteConfig = () => getData<PublicSiteConfig>('/site-config');
+
 export const getHome = (refresh = false) =>
   refresh ? getData<HomeData>('/home', { refresh: true }) : cached('home', 2 * MIN, () => getData<HomeData>('/home'));
 
