@@ -58,6 +58,7 @@ export interface HomeData {
   popular: MangaCard[];
   recommended: MangaCard[];
   sections: HomeSection[];
+  admin_settings?: { visible_sections?: string[]; section_titles?: Record<string, string>; section_order?: string[] };
 }
 
 export interface BrowseData {
